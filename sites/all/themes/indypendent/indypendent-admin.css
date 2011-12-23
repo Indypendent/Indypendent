@@ -1,0 +1,47 @@
+/* Styles specific to site administration */
+
+/* Admin tab styles, copied from the Bartik Theme with a few customizations */
+
+.content-admin-tabs {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.content-admin-tabs ul.primary {
+  padding: 0 3px;
+  margin: 0 0 20px 0;
+  overflow: hidden;
+  border: none;
+  background: transparent url(/themes/bartik/images/tabs-border.png) repeat-x left bottom;
+}
+.content-admin-tabs ul.primary li {
+  display: block;
+  float: left; /* LTR */
+  vertical-align: bottom;
+  margin: 0 5px 0 0; /* LTR */
+}
+.content-admin-tabs ul.primary li.active a {
+  border-bottom: 1px solid #ffffff;
+}
+.content-admin-tabs ul.primary li a {
+/*   color: #000; */
+  background-color: #ededed;
+  height: 1.8em;
+  line-height: 1.9;
+  display: block;
+  font-size: 1.5em;
+  float: left; /* not LTR */
+  padding: 0 10px 3px;
+  margin: 0;
+  text-shadow: 0 1px 0 #fff;
+  -khtml-border-radius-topleft: 6px;
+  -moz-border-radius-topleft: 6px;
+  -webkit-border-top-left-radius: 6px;
+  border-top-left-radius: 6px;
+  -khtml-border-radius-topright: 6px;
+  -moz-border-radius-topright: 6px;
+  -webkit-border-top-right-radius: 6px;
+  border-top-right-radius: 6px;
+}
+.content-admin-tabs ul.primary li.active a {
+  background-color: #ffffff;
+}
