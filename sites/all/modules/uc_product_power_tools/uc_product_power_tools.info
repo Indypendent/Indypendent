@@ -1,0 +1,8 @@
+name = Product Power Tools
+description = Controls visibility and default values of product fields when creating or editing products.  Includes automatic generation of SKU values.
+dependencies[] = uc_cart
+dependencies[] = php
+package = Ubercart - extra
+core = 7.x
+
+configure = admin/store/products/power-tools

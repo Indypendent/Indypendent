@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the uc_2checkout module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function uc_2checkout_uninstall() {
+  db_delete('variable')
+    ->condition('name', 'uc_2checkout_%', 'LIKE')
+    ->execute();
+}

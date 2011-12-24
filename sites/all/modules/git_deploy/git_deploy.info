@@ -1,0 +1,4 @@
+name = Git Deploy
+description = Helps sites that are deployed directly from a Git repositories.
+core = 7.x
+files[] = git_deploy.module

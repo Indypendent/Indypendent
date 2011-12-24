@@ -1,0 +1,6 @@
+name = String Overrides Migrate
+description = Tools for importing and exporting string override settings.
+dependencies[] = stringoverrides
+core = 7.x
+files[] = stringoverrides_migrate.module
+files[] = stringoverrides_migrate.admin.inc

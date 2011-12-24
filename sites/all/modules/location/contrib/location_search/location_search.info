@@ -1,0 +1,10 @@
+name = Location Search
+package = Location
+description = Advanced search page for locations.
+dependencies[] = search
+dependencies[] = location
+core = 7.x
+files[] = location_search.module
+files[] = location_search.install
+files[] = location_search.admin.inc
+

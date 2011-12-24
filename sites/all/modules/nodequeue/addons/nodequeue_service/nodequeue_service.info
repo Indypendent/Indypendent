@@ -1,0 +1,9 @@
+name = Nodequeue Service
+description = Provides a nodequeue service.
+package = Nodequeue
+core = 7.x
+
+dependencies[] = services
+dependencies[] = nodequeue
+
+files[] = nodequeue_service.inc

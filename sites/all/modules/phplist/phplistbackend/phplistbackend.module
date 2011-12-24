@@ -1,0 +1,506 @@
+<?php
+
+/**
+ * Implements hook_form_alter().
+ */
+function phplistbackend_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'node_type_form') { // Removed this condition from the if statement (not sure if still needed in D7 ??):   && isset($form['identity']['type'])) {
+    $form['workflow']['phplistbackend_newsletter'] = array(
+      '#type' => 'radios',
+      '#title' => t('Send as newsletter'),
+      '#default_value' => variable_get('phplistbackend_newsletter_' . $form['#node_type']->type, 0),
+      '#options' => array(0 => t('Disabled'), 1 => t('Enabled')),
+      '#description' => t('Should this node be sent as a newsletter?'),
+    );
+  }
+  elseif (isset($form['type']) && isset($form['#node']) && $form['type']['#value'] . '_node_form' == $form_id) {
+    $node = $form['#node'];
+    if (variable_get('phplistbackend_newsletter_' . $form['type']['#value'], 0)) {
+      $form['phplistbackend'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Newsletter'),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE
+      );
+      $form['phplistbackend']['phplistbackend_status'] = array(
+        '#type' => 'select',
+        '#title' => t('Newsletter status'),
+        '#default_value' => isset($node->phplistbackend_status) ? $node->phplistbackend_status : 'draft',
+        '#options' => array(
+          'draft' => t('Draft'),
+          'submitted' => t('Queued'),
+          'inprocess' => t('In process'),
+          'sent' => t('Sent'),
+          'suspended' => t('Suspended')
+        ),
+        '#weight' => 0,
+      );
+      $form['phplistbackend']['phplistbackend_sendstart'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Embargo date'),
+        '#default_value' => isset($node->phplistbackend_sendstart) ? $node->phplistbackend_sendstart : date('Y-m-d H:i:s'),
+        '#description' => t("Don't send newsletter before this date. Expecting a value in the format of @date.", array('@date' => date('Y-m-d H:i:s'))),
+      );
+      if (module_exists('date_popup')) {
+        $form['phplistbackend']['phplistbackend_sendstart']['#type'] = 'date_popup';
+        $form['phplistbackend']['phplistbackend_sendstart']['#date_format'] = 'Y-m-d H:i:s';
+        $form['phplistbackend']['phplistbackend_sendstart']['#date_year_range'] = '-1:+3';
+        $form['phplistbackend']['phplistbackend_sendstart']['#description'] = t("Don't send newsletter before this date.");
+      }
+      $lists = phplistbackend_get_lists();
+      $form['phplistbackend']['phplistbackend_lists'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Lists'),
+        '#default_value' => isset($node->phplistbackend_lists) ? $node->phplistbackend_lists : array(),
+        '#options' => $lists,
+        '#description' => t('List(s) to send this newsletter to.'),
+        '#required' => TRUE,
+      );
+    }
+  }
+}
+
+
+function phplistbackend_node_validate($node) {
+}
+
+function phplistbackend_node_view($node) {
+}
+
+function phplistbackend_node_load($nodes) {
+  $node = array_pop($nodes);
+  $nlid = db_query('SELECT nlid FROM {phplist_node} WHERE nid = :nid', array(':nid' => $node->nid))->fetchField();
+
+  if (PHPLIST_DEBUG) {
+    drupal_set_message(t('Found a PHPlist message id of !nlid', array('!nlid' => $nlid)), 'info');
+  }
+  $message = phplistbackend_message_load($nlid);
+
+  if (PHPLIST_DEBUG) {
+    drupal_set_message(t('Loaded PHPlist message id !msgid', array('!msgid' => $nlid)), 'info');
+  }
+
+  $node->phplistbackend_nlid = $nlid;
+  $node->phplistbackend_status = $message['status'];
+  $node->phplistbackend_sendstart = $message['sendstart'];
+  $node->phplistbackend_lists = $message['lists'];
+}
+
+function phplistbackend_node_insert($node) {
+  $node = array_pop($nodes);
+
+  if (variable_get('phplistbackend_newsletter_' . $node->type, 0)) {
+    $author = user_load($node->uid);
+    // Get translated path as absolute url,
+    // even if there is no translation.
+    if (function_exists('translation_path_get_translations') && function_exists('language_list')) {
+      $paths = translation_path_get_translations('node/' . $node->nid);
+      $path = empty($paths) ? 'node/' . $node->nid : $paths[$node->language];
+      $langs = language_list();
+      $url = url($path, array('language' => $langs[$node->language]));
+      if (empty($langs[$node->language]->domain)) {
+        $url = 'http://' . $_SERVER['HTTP_HOST'] . $url;
+      }
+    }
+    else {
+      $url = 'http://' . $_SERVER['HTTP_HOST'] . url('node/' . $node->nid);
+    }
+    $message = array(
+      'subject' => $node->title,
+      'fromfield' => variable_get('site_name', 'Drupal') . ' ' . variable_get('site_email', 'info@example.com'),
+      'message' => '[URL:' . $url . ']',
+      'textmessage' => $url,
+      'footer' => '',
+      'status' => $node->phplistbackend_status,
+      'userselection' => $node->language != '' ? phplistbackend_format_userselection($node->language) : NULL,
+      'htmlformatted' => 1,
+      'sendformat' => 'HTML',
+      'template' => 0,
+      //'sendstart' => date('Y-m-d H:i:s'),
+      'sendstart' => $node->phplistbackend_sendstart,
+      'owner' => 1,  // Default to admin as owner
+    );
+
+    foreach ($node->phplistbackend_lists as $list) {
+      $message['lists'][] = $list;
+    }
+    $id = phplistbackend_message_save($message);
+    $id = db_insert('phplist_node')
+      ->fields(array(
+        'nlid' => $id,
+        'nid' => $node->nid,
+      ))
+      ->execute();
+
+    if (PHPLIST_DEBUG) {
+      drupal_set_message(t('Node sent to PHPlist'), 'info');
+    }
+  }
+}
+
+function phplistbackend_node_update($node) {
+
+  if (variable_get('phplistbackend_newsletter_' . $node->type, 0)) {
+    $nlid = db_query('SELECT nlid FROM {phplist_node} WHERE nid = :nid', array(':nid' => $node->nid))->fetchField();
+    $message = phplistbackend_message_load($nlid);
+
+    $author = user_load($node->uid);
+    // Get translated path as absolute url,
+    // even if there is no translation.
+    if (function_exists('translation_path_get_translations') && function_exists('language_list')) {
+      $paths = translation_path_get_translations('node/' . $node->nid);
+      $path = empty($paths) ? 'node/' . $node->nid : $paths[$node->language];
+      $langs = language_list();
+      $url = url($path, array('language' => $langs[$node->language]));
+      if (empty($langs[$node->language]->domain)) {
+        $url = 'http://' . $_SERVER['HTTP_HOST'] . $url;
+      }
+    }
+    else {
+      $url = 'http://' . $_SERVER['HTTP_HOST'] . url('node/' . $node->nid);
+    }
+    $message['message'] = '[URL:' . $url . ']';
+    $message['textmessage'] = $url;
+    $message['subject'] = $node->title;
+    $message['status'] = $node->phplistbackend_status;
+    $message['owner'] = $author->name;
+    $message['sendstart'] = $node->phplistbackend_sendstart;
+    $message['userselection'] = $node->language != '' ? phplistbackend_format_userselection($node->language) : NULL;
+    $message['lists'] = array();
+
+    foreach ($node->phplistbackend_lists as $list) {
+      $message['lists'][] = $list;
+    }
+    $id = phplistbackend_message_save($message);
+
+    db_delete('phplist_node')
+      ->condition('nid', $node->nid)
+      ->execute();
+    $id = db_insert('phplist_node')
+      ->fields(array(
+        'nlid' => $id,
+        'nid' => $node->nid,
+      ))
+      ->execute();
+  }
+}
+
+function phplistbackend_node_delete($node) {
+  db_delete('phplist_node')
+    ->condition('nid', $node->nid)
+    ->execute();
+}
+
+/**
+ * Returns an array of phplist messages as they are in the database,
+ * optionally filtered on status
+ */
+function phplistbackend_get_messages($status = 'all') {
+  // Grab the phplist prefix array
+  $prefix = _phplist_dbconn();
+  // Prefix will return false if the phplist settings were wrong
+  if ($prefix == FALSE) {
+    return FALSE;
+  }
+  // When the phplist settings are correct
+  else {
+    // Build the query
+    $query = "SELECT * FROM {%s}";
+    $placeholder = array();
+    // get the phplist prefix and append messages to get the messages table
+    $placeholder[] = $prefix['prefix'] . 'message';
+    // if a status was passed
+    if ($status != 'all') {
+      // append status filter to query
+      $query .= " WHERE status = '%s'";
+      // append status to placeholder array
+      $placeholder[] = $status;
+      // showing 20 results for status specific requests
+      // TODO: pager and maybe views-like exposed filters, perhaps use views for building this
+      $limit = 20;
+    }
+    else {
+      // if no status was passed, show only 10 results
+      $limit = 10;
+    }
+    // add order by modified date , showing last modified message on top
+    $query .= " ORDER BY modified DESC";
+    // use phplist database
+    db_set_active('phplist');
+    // run the query, keeping in mind we want to add a pager in the future
+    $results = pager_query($query, $limit, 0, NULL, $placeholder);
+    $messages = array();
+    while ($result = db_fetch_array($results)) {
+      // stuff results in messages array
+      $messages[] = $result;
+    }
+    // add the lists for each message
+    foreach ($messages as $id => $message) {
+      // building query
+      // get the name and id of the lists that belong to this message
+      $query = "SELECT list.name, list.id FROM {%s} as list, {%s} as lmsg WHERE lmsg.messageid = %d AND list.id = lmsg.listid";
+      $placeholder = array();
+      // populate placeholder with list table name
+      $placeholder[] = $prefix['prefix'] . 'list';
+      // populate placeholder with listmessage table name
+      $placeholder[] = $prefix['prefix'] . 'listmessage';
+      // populate placeholder with message id
+      $placeholder[] = $message['id'];
+      // execute query
+      $results = db_query("SELECT list.name, list.id FROM {%s} as list, {%s} as lmsg WHERE lmsg.messageid = :lmsg.messageid AND list.id = :list.id", array(':lmsg.messageid' => $placeholder, ':list.id' => lmsg . listid));
+      while ($result = db_fetch_array($results)) {
+        // populate the message lists array with the results
+        $messages[$id]['lists'][$result['id']] = $result['name'];
+      }
+    }
+    // set active database back to default
+    db_set_active('default');
+    return $messages;
+  }
+}
+
+/**
+ * Saves a message to the db, if an ID is supplied, it will update the message with that ID
+ */
+function phplistbackend_message_save($message) {
+  // Grab the phplist prefix array
+  $prefix = _phplist_dbconn();
+  // Prefix will return false if the phplist settings were wrong
+  if ($prefix == FALSE) {
+    return FALSE;
+  }
+
+  // Set active db to phplist db
+  db_set_active('phplist');
+  // Looking into a way to abuse schema api to do this for us
+  // Check if the id was set
+  if (!isset($message['id'])) {
+    // No ID was given, this message is new
+    // Execute insert-query
+    $msgid = db_insert($prefix['prefix'] . 'message')
+    	->fields(array(
+    	'subject'		=> $message['subject'],
+    	'fromfield' 	=> $message['fromfield'],
+    	'message'		=> $message['message'],
+    	'textmessage'	=> $message['textmessage'],
+    	'footer'		=> $message['footer'],
+    	'entered'		=> date('Y-m-d H:i:s'),
+    	'embargo'		=> date('Y-m-d H:i:s'),
+    	'repeatuntil' 	=> date('Y-m-d H:i:s'),
+    	'status' 		=> $message['status'],
+    	'userselection' => $message['userselection'],
+    	'htmlformatted' => $message['htmlformatted'],
+    	'sendformat'	=> $message['sendformat'],
+    	'template' 		=> $message['template'],
+    	'sendstart'		=> $message['sendstart'],
+    	'rsstemplate'	=> '',
+    	'owner' 		=> $message['owner'],
+    	))
+    	->execute();
+
+    if (PHPLIST_DEBUG) {
+      drupal_set_message(t('Newsletter added to PHPlist with id !msgid', array('!msgid' => $msgid)), 'info');
+    }
+
+	// $msgid contains new row id, or NULL on fail
+    // Check if it was successful and if there are any lists to add
+    if ($msgid && count($message['lists'])) {
+      // add values for each list
+      // Code modeled from http://drupal.org/node/310079
+      $values = array();
+      foreach ($message['lists'] as $list) {
+      	if($list) $values[] = array($msgid,$list,date('Y-m-d H:i:s'));
+      }
+
+      // run query
+      $query = db_insert($prefix['prefix'] . 'listmessage')
+      	->fields(array('messageid', 'listid', 'entered'));
+
+      foreach ($values as $record) {
+		$query->values($record);
+	  }
+      $query->execute();
+    }
+    db_set_active('default');
+  }
+  else {
+    // ID was given, using update instead
+    // update syntax at http://drupal.org/node/310080
+    $msgid = $message['id'];
+    $result = db_update($prefix['prefix'] . 'message')
+    	->fields(array(
+          'subject'		=> $message['subject'],
+          'fromfield' 	=> $message['fromfield'],
+          'message'		=> $message['message'],
+          'textmessage'	=> $message['textmessage'],
+          'footer'		=> $message['footer'],
+          'entered'		=> date('Y-m-d H:i:s'),
+          'embargo'		=> date('Y-m-d H:i:s'),
+          'repeatuntil' => date('Y-m-d H:i:s'),
+          'status' 		=> $message['status'],
+          'userselection' => $message['userselection'],
+          'htmlformatted' => $message['htmlformatted'],
+          'sendformat'	=> $message['sendformat'],
+          'template' 	=> $message['template'],
+          'sendstart'	=> $message['sendstart'],
+          'rsstemplate'	=> '',
+          'owner' 		=> 1,
+    	  ))
+    	->condition('id', $msgid)
+    	->execute();
+
+    if ($result && count($message['lists'])) {
+      db_delete($prefix['prefix'] . 'listmessage')
+        ->condition('messageid', $message['id'])
+        ->execute();
+
+      // build query for insert
+      $query = db_insert($prefix['prefix'] . 'listmessage');
+
+      // add values for each list
+      foreach ($message['lists'] as $list) {
+        if ($list) {
+          $query->fields(array(
+          	'messageid' => $msgid,
+          	'listid'    => $list,
+          	'entered'   => date('Y-m-d H:i:s'),
+          ));
+          $query->execute();
+        }
+      }
+    }
+  }
+  // set active db back to default
+  db_set_active('default');
+  if ($msgid) {
+    return $msgid;
+  }
+}
+
+/**
+ * Function for loading messages and their associated lists
+ */
+function phplistbackend_message_load($msg = NULL) {
+  if ($msg && is_numeric($msg)) {
+    // Grab the phplist prefix array
+    $prefix = _phplist_dbconn();
+
+    // Prefix will return false if the phplist settings were wrong
+    if ($prefix == FALSE) {
+      return FALSE;
+    }
+    // Set active db to phplist db
+    db_set_active('phplist');
+    $table = $prefix['prefix'] . 'message';
+
+    $message = db_select($table, 't')
+      ->fields('t')
+      ->condition('id', $msg)
+      ->execute()
+      ->fetchAssoc();
+
+    if (PHPLIST_DEBUG) {
+      if ($message) {
+        drupal_set_message(t('Found and loaded PHPlist message'), 'info');
+      }
+      else {
+        drupal_set_message(t('Unable to load PHPlist message'), 'info');
+      }
+    }
+
+    $result = db_query("SELECT listid FROM {$prefix['prefix']}listmessage WHERE messageid = :messageid", array(':messageid' => $msg));
+    $lists = array();
+
+    while ($list = $result->fetchField()) {
+      $lists[] = $list;
+    }
+
+    $message['lists'] = $lists;
+    db_set_active('default');
+
+    return $message;
+  }
+  return FALSE;
+}
+
+/**
+ * Helper function for getting all lists,
+ * pass FALSE as argument to get the inactive ones as well.
+ */
+function phplistbackend_get_lists($active = TRUE) {
+  $lists = array();
+  // Grab the phplist prefix array
+  $prefix = _phplist_dbconn();
+  // Prefix will return false if the phplist settings were wrong
+  if ($prefix == FALSE) {
+    return FALSE;
+  }
+  // Switch DB
+  db_set_active('phplist');
+  // Set table name
+  $tbl = $prefix['prefix'] . 'list';
+
+  $select = db_select($tbl, 'p')->fields('p', array('id','name'));
+  // If no arg was passed or arg was TRUE, only get active ones
+  if ($active) {
+    $select->condition('active', 1);
+  }
+  $lists = $select->execute()->fetchAllKeyed();
+
+  // Switch DB back
+  db_set_active('default');
+  // Spit out array
+  return $lists;
+}
+
+/**
+ * Helper function for formatting the ugly userselection thing in phpList
+ */
+function phplistbackend_format_userselection($lang = NULL) {
+  if (module_exists('locale') && variable_get('phplist_lang', '') != '') {
+    if ($lang == NULL) {
+      // No language was passed, fall back to currently active language
+      global $language;
+      $lang = $language->language;
+    }
+    $attr_name = variable_get('phplist_lang', '');
+    $prefix = _phplist_dbconn();
+
+    // Prefix will return false if the phplist settings were wrong
+    if ($prefix == FALSE) {
+      return FALSE;
+    }
+
+    db_set_active('phplist');
+    $attrid = db_query("SELECT id FROM {%s} WHERE name = :name", array(':name' => array($prefix['user'] . 'attribute', $attr_name)))->fetchField();
+    db_set_active('default');
+
+    $attrvalue = variable_get("phplist_lang_$lang", '1');
+    return 'select table1.userid from ' . $prefix['user'] . 'user_attribute as table1 where table1.attributeid = ' . $attrid . ' and table1.value = ' . $attrvalue;
+  }
+  return FALSE;
+}
+
+/**
+ * Implements preprocess_page().
+ */
+function phplistbackend_preprocess_page(&$vars) {
+  if (strpos($_SERVER['HTTP_USER_AGENT'], 'phplist') !== FALSE) {
+    $vars['phplist'] = TRUE;
+  }
+  else {
+    $vars['phplist'] = FALSE;
+  }
+}
+
+/**
+ * Implements preprocess_node().
+ */
+function phplistbackend_preprocess_node(&$vars) {
+  if (strpos($_SERVER['HTTP_USER_AGENT'], 'phplist') !== FALSE) {
+    $vars['phplist'] = TRUE;
+  }
+  else {
+    $vars['phplist'] = FALSE;
+  }
+}

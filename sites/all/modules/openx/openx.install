@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * @author Gerd Riesselmann
+ * @author Jeff Warrington (jaydub) is new maintainer March 2008
+ * @author Chris Nutting <Chris.Nutting@openx.org>
+ * @author Bruno Massa
+ *
+ * @file
+ * Module settings.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function openx_uninstall() {
+  // Delete global variables
+  variable_del('openx_delivery_url');
+  variable_del('openx_delivery_url_https');
+  variable_del('openx_num_zones');
+  variable_del('openx_site_vars');
+  variable_del('openx_zone');
+}
+
+/**
+ * Remove unused variable.
+ */
+function openx_update_7000() {
+  variable_del('openx_num_zones');
+}

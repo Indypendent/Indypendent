@@ -1,0 +1,32 @@
+<?php
+
+function sharethis_block_block_info() {
+  $blocks['sharethis_block'] = array(
+    'info' => t('ShareThis'),
+  );
+  return $blocks;
+}
+ /**
+ * Implementation of hook_block_view().
+ */
+function sharethis_block_block_view($delta='') {
+  $block = array();
+  switch ($delta) {
+    case 'sharethis_block':
+      $block['content'] = sharethis_block_contents();
+      break;
+  }
+  return $block;
+}
+ /**
+ * custom html block
+ * @return string
+ */
+function sharethis_block_contents() {
+  // First get all of the options for the sharethis widget from the database:
+  $data_options = get_options_array();
+  $path = isset($_GET['q']) ? $_GET['q'] : '<front>';
+  $mPath = url($_GET['q'], array('absolute' => TRUE));
+  $mTitle = drupal_get_title();
+  return get_button_HTML($data_options, $mPath, $mTitle);
+}

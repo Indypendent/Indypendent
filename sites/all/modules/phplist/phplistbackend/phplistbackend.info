@@ -1,0 +1,9 @@
+name = "PHPlist Backend"
+description = "Provides a backend tie-in with PHPlist."
+package = "PHPlist"
+dependencies[] = "phplist"
+core = 7.x
+version = 7.x.dev
+
+files[] = phplistbackend.install
+files[] = phplistbackend.module

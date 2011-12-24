@@ -1,0 +1,9 @@
+name = Location Add Another
+description = Allows you to quickly add locations directly from a node without having to click 'edit' first.
+dependencies[] = location
+dependencies[] = location_node
+package = Location
+core = 7.x
+files[] = location_addanother.module
+files[] = location_addanother.install
+

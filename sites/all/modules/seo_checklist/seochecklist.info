@@ -1,0 +1,5 @@
+; $Id$
+name = SEO Checklist
+description = A Search Engine Optimization checklist for Drupal.
+core = 7.x
+configure = admin/config/system/seochecklist

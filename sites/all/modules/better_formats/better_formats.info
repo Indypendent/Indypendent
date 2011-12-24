@@ -1,0 +1,4 @@
+name = Better Formats
+description = Enhances the core input format system by managing input format defaults and settings.
+core = 7.x
+configure = admin/config/content/formats

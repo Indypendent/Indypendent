@@ -1,0 +1,11 @@
+name = Eva
+description = Provides a Views display type that can be attached to entities.
+core = 7.x
+dependencies[] = views
+package = Views
+
+files[] = eva-display-entity-view.tpl.php
+files[] = eva.module
+files[] = eva.theme.inc
+files[] = eva.views.inc
+files[] = eva_plugin_display_entity.inc

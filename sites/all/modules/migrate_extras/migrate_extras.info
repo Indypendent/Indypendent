@@ -1,0 +1,19 @@
+name = Migrate Extras
+description = "Adds migrate module integration with contrib modules and other miscellaneous tweaks."
+core = 7.x
+package=Development
+
+dependencies[] = migrate
+files[] = addressfield.inc
+files[] = date.inc
+files[] = flag.inc
+files[] = media.inc
+files[] = pathauto.inc
+files[] = profile2.inc
+files[] = rules.inc
+files[] = og.inc
+files[] = privatemsg.inc
+files[] = votingapi.inc
+files[] = user_relationships.inc
+files[] = tests/date.test
+files[] = tests/pathauto.test

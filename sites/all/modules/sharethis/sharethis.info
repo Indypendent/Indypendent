@@ -1,0 +1,5 @@
+name = ShareThis
+description = This module adds the <a href="http://sharethis.com/">ShareThis</a> widget to a node on your site.
+core = 7.x
+package = Sharing
+configure = admin/config/sharethis

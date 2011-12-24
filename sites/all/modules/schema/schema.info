@@ -1,0 +1,10 @@
+; $Id$
+name = Schema
+description = "The Schema module provides functionality built on the Schema API."
+package = Database
+core = 7.x
+files[] = schema.module
+files[] = schema.install
+files[] = engines/mysql.inc
+files[] = engines/pgsql.inc
+files[] = tests/schema_regression.test

@@ -1,0 +1,6 @@
+name = Smartqueue taxonomy
+description = Creates a node queue for each taxonomy vocabulary
+package = Nodequeue
+core = 7.x
+dependencies[] = nodequeue 
+dependencies[] = taxonomy

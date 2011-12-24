@@ -1,0 +1,5 @@
+name = ShareThis Block
+description = This module creates a custom block for the <a href="http://sharethis.com/">ShareThis</a> widget.
+core = 7.x
+package = Sharing
+dependencies[] = sharethis

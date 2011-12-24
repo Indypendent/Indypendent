@@ -1,0 +1,6 @@
+name = Block Class
+description = Allows assigning CSS classes to blocks.
+core = 7.x
+
+files[] = block_class.install
+files[] = block_class.module

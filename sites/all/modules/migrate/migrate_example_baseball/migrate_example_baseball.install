@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * @file
+ * Set up the migration baseball example module.
+ */
+
+function migrate_example_baseball_enable() {
+  $path = dirname(__FILE__) . '/data';
+  for ($i=0; $i<=9; $i++) {
+    $file = 'GL200' . $i . '.TXT';
+    Migration::registerMigration('GameBaseball', strtolower(pathinfo($file, PATHINFO_FILENAME)), array('source_file' => $path . '/' . $file));
+  }
+}
+
+function migrate_example_baseball_uninstall() {
+  // 
+}
+
+function migrate_example_baseball_disable() {
+  for ($i=0; $i<=9; $i++) {
+    $file = 'GL200' . $i . '.TXT';
+    // Migration::deregisterMigration(strtolower(pathinfo($file, PATHINFO_FILENAME)));
+  }
+}

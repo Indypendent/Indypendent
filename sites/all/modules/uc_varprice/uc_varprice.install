@@ -1,0 +1,80 @@
+<?php
+// $Id: uc_varprice.install,v 1.1 2009/05/15 21:40:04 rszrama Exp $
+
+/**
+ * @file
+ * Installs the necessary table for the Variable Price product features.
+ */
+
+/**
+ * Implementation of hoook_schema()
+ */
+function uc_varprice_schema() {
+  $schema = array();
+
+  $schema['uc_varprice_products'] = array(
+    'fields' => array(
+      'vpid' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'pfid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'price_default' => array(
+        'description' => 'Default product price.',
+        'type' => 'numeric',
+        'precision' => 10,
+        'scale' => 2,
+        'not null' => TRUE,
+        'default' => 0.0,
+      ),
+      'price_minimum' => array(
+        'description' => 'Minimum product price.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'price_maximum' => array(
+        'description' => 'Maximum product price.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'add_to_cart_title' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'amount_title' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'indexes' => array(
+      'pfid' => array('pfid'),
+    ),
+    'primary key' => array('vpid'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function uc_varprice_uninstall() {
+  db_delete('uc_product_features')
+    ->condition('fid', 'varprice')
+    ->execute();
+  variable_del('uc_varprice_global_default');
+}

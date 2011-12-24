@@ -1,0 +1,9 @@
+name = Location Taxonomy
+description = Associate locations with taxonomy terms.
+dependencies[] = location
+dependencies[] = taxonomy
+package = Location
+core = 7.x
+files[] = location_taxonomy.module
+files[] = location_taxonomy.install
+

@@ -1,0 +1,114 @@
+<?php
+
+/**
+ * @author Gerd Riesselmann
+ * @author Jeff Warrington (jaydub) is new maintainer March 2008
+ * @author Chris Nutting <Chris.Nutting@openx.org>
+ * @author Bruno Massa
+ *
+ * @file
+ * Integrates Drupal with OpenX Ad server
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function openx_block_info() {
+  $blocks = array();
+  $zones = variable_get('openx_zones', array());
+  foreach ($zones as $index => $zone) {
+    if ($zone['id']) {
+      $blocks[$index] = array(
+        'info'    => t('OpenX Zone !id (!name)', array('!id' => $zone['id'], '!name' => (empty($zone['name']) ? t('untitled') : $zone['name']))),
+      );
+    }
+  }
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function openx_block_view($delta = '') {
+  $block = array(
+    'content' => openx_invoke($delta)
+  );
+  return $block;
+}
+
+/**
+ * Implements hook_help().
+ */
+function openx_help($section, $arg = NULL) {
+  switch ($section) {
+    case 'admin/help#openx':
+    case 'admin/modules#description':
+      return '<p>' . t('The OpenX module allows site administrators to integrate Drupal with the OpenX adserver.
+        OpenX ad zones that are configured to be used in with openx module can be shown anywhere
+        in a theme directly using a function call or via Drupal blocks which are automatically
+        created for each OpenX ad zone. Additional information regarding OpenX can be found at the
+        <a href="http://www.openx.org">OpenX website</a>.') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function openx_menu() {
+  $items['admin/config/openx'] = array(
+    'title' => 'OpenX',
+    'position' => 'right',
+    'weight' => -10,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access administration pages'),
+    'file path' => drupal_get_path('module', 'system'),
+    'file' => 'system.admin.inc',
+  );
+  $items['admin/config/openx/settings'] = array(
+    'access arguments' => array('administer site configuration'),
+    'description' => 'Configure OpenX AdServer integration behavior and appearance.',
+    'file' => 'openx.admin.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_openx_settings'),
+    'title' => 'Settings',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function openx_theme() {
+  return array(
+    'openx_settings_zones' => array(
+      'file'      => 'openx.admin.inc',
+      'render element' => 'form',
+    ),
+    'openx_site_vars' => array(
+      'render element' => 'form',
+      'file' => 'openx.admin.inc',
+    ),
+  );
+}
+
+/**
+ * Builds the call to OpenX
+ *
+ * @param $index_or_key
+ *   Number or String. The zone ID number or the it's 'nickname'
+ * @return
+ *   HTML. The area where the banner will be displayed
+ */
+function openx_invoke($index_or_key) {
+  module_load_include('inc', 'openx');
+  if (!$zone = _openx_get_zone($index_or_key)) {
+    return '';
+  }
+
+  // Add the JS on top of the page
+  _openx_javascript();
+
+  return "<script type='text/javascript'><!--// <![CDATA[
+    OA_show('{$zone['name']}');
+// ]]> --></script>";
+}

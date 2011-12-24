@@ -1,0 +1,6 @@
+name = "Extras"
+description = "Contains additional features."
+core = "7.x"
+package = "Display suite"
+dependencies[] = ds
+configure = admin/structure/ds/extras

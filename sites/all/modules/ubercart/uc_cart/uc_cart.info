@@ -1,0 +1,14 @@
+name = Cart
+description = REQUIRED. Controls the shopping cart and checkout for an Ubercart e-commerce site.
+dependencies[] = uc_order
+dependencies[] = uc_product
+package = Ubercart - core
+core = 7.x
+
+; Test cases
+files[] = tests/uc_cart.test
+
+; Views handlers
+files[] = views/uc_cart_handler_field_cart_user.inc
+
+configure = admin/store/settings/cart

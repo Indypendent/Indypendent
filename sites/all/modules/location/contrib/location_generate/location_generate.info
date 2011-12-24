@@ -1,0 +1,8 @@
+name = Location Generate
+description = Bulk assign random latitude and longitudes to nodes.
+package = Development
+dependencies[] = devel_generate
+dependencies[] = location
+core = 7.x
+files[] = location_generate.module
+

@@ -1,0 +1,8 @@
+; $Id$
+name = Global Redirect
+description = "Searches for an alias of the current URL and 301 redirects if found. Stops duplicate content arising when path module is enabled."
+core = 7.x
+files[] = globalredirect.module
+files[] = globalredirect.install
+files[] = globalredirect.admin.inc
+files[] = globalredirect.test
