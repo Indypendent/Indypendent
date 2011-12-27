@@ -596,6 +596,11 @@ p, ul, h1, h2, h3, h4, h5, h6 {
   display: block;
 }
 
+#block-quicktabs-featured-articles ul.quicktabs-tabs li.active {
+  background-color: #FF0000;
+  opacity: .85;
+}
+
 #block-quicktabs-featured-articles ul.quicktabs-tabs li a {
   height: 100%;
   display: block;
