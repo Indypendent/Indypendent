@@ -1033,6 +1033,15 @@ p, ul, h1, h2, h3, h4, h5, h6 {
   margin: 1em 0;
 }
 
+#content .field-name-body span.image-caption-container {
+  height: auto !important;
+}
+
+#content .field-name-body span.image-caption-container span.image-caption {
+  background-color: #DEB887;
+  opacity: .85;
+}
+
 #content .group-footer hr {
   height: 10px;
   border: none;
