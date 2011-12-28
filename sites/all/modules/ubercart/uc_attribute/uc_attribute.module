@@ -1282,7 +1282,7 @@ function _uc_attribute_alter_form($product) {
         // Select options are check_plain()ed, but radio button labels are not.
         $options[$option->oid] = check_plain($options[$option->oid]);
       }
-      $options[$option->oid] .= $display_price;
+      //$options[$option->oid] .= $display_price;
     }
 
     if (count($attribute->options) && $attribute->display > 0) {
