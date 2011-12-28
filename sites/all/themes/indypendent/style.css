@@ -2507,15 +2507,12 @@ body.node-slideshow #lightbox #imageDataContainer {
   margin-bottom: 10px;
 }
 
-.page-donate div.form-item-varprice {
+.page-donate .form-radios .form-item {
+  display: inline;
   font-size: 1.4em;
 }
 
-.page-donate label[for=edit-varprice] {
-  display: inline;
-}
-
-.page-donate .views-field-body p {
+.page-donate .views-field-body p, .page-donate .views-field-body-1 p {
   font-size: 1.4em;
 }
 
