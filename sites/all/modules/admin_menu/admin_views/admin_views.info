@@ -6,3 +6,10 @@ dependencies[] = views
 dependencies[] = views_bulk_operations
 files[] = admin_views.module
 files[] = plugins/views_plugin_display_system.inc
+
+; Information added by drupal.org packaging script on 2011-10-16
+version = "7.x-3.x-dev"
+core = "7.x"
+project = "admin_menu"
+datestamp = "1318723314"
+

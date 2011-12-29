@@ -4,3 +4,10 @@ package = Administration
 core = 7.x
 scripts[] = admin_devel.js
 files[] = admin_devel.module
+
+; Information added by drupal.org packaging script on 2011-10-16
+version = "7.x-3.x-dev"
+core = "7.x"
+project = "admin_menu"
+datestamp = "1318723314"
+
