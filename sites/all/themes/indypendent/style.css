@@ -105,6 +105,14 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 
 /* End Admin Menu */
 
+/* Popup Message */
+
+#popup-message-window {
+  z-index: 500;
+}
+
+/* End Popup Message */
+
 /* Page Wrapper */
 
 #page-wrapper {
