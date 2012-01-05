@@ -541,13 +541,15 @@ p, ul, h1, h2, h3, h4, h5, h6 {
   margin: 0;
   border: 0;
   list-style: none;
+  line-height: 1.5;
 }
 
 .secondary-menu a {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 1.152em;
+  font-size: 1.4em;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  color: #D93315;
 }
 
 /* End Secondary Menu */
