@@ -1565,6 +1565,13 @@ p, ul, h1, h2, h3, h4, h5, h6 {
   margin-bottom: 10px;
 }
 
+#content .view-blog .field-name-node-link a {
+  text-transform: uppercase;
+  color: #C1272D;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+
 /*
 
 #content .view-blog .field-links {
