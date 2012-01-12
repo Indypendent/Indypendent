@@ -1,0 +1,4 @@
+name = Indypendent rss
+description = Modifies RSS feeds, specifically by editing the dc:creator field.
+package = Indypendent
+core = 7.x

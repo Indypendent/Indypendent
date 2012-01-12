@@ -1,0 +1,24 @@
+<?php
+
+/*
+ * @file
+ * Modifies RSS feeds, specifically by editing the dc:creator field.
+ */
+
+/**
+* Implements hook_node_view().
+*/
+function indypendent_rss_node_view($node, $view_mode) {
+  if ($view_mode == 'rss') {
+  // Grab the field (byline) value from the node object
+    $creator = $node->field_authors['und'][0]['taxonomy_term']->name;
+    // If empty, assign a default value 
+    if (empty($creator)) {
+      $creator = 'The Indypendent';
+    } 
+    $node->rss_elements[1] = array(
+      'key' => 'dc:creator',
+      'value' => $creator
+    );
+  }
+}
