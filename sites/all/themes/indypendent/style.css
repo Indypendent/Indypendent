@@ -418,6 +418,7 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 
 #sidebar-right #block-phplist-phplist-subscribe #edit-phplist-mail {
   height: 20px;
+  width: 150px;
 }
 
 #sidebar-right #block-phplist-phplist-subscribe .form-submit {
