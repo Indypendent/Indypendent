@@ -619,7 +619,7 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 }
 
 #block-quicktabs-featured-articles ul.quicktabs-tabs a#quicktabs-tab-featured_articles-0 {
-  width: 170px;
+  width: 92px;
   background: url('images/localn.png') transparent;
 }
 
@@ -636,6 +636,11 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 #block-quicktabs-featured-articles ul.quicktabs-tabs a#quicktabs-tab-featured_articles-3 {
   width: 62px;
   background: url('images/cultn.png') transparent;
+}
+
+#block-quicktabs-featured-articles ul.quicktabs-tabs a#quicktabs-tab-featured_articles-4 {
+  width: 72px;
+  background: url('images/indyblogn.png') transparent;
 }
 
 #block-quicktabs-featured-articles #quicktabs-container-featured_articles {
