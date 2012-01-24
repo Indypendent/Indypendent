@@ -1254,7 +1254,7 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 
 #content .node-issue .group-header .item-cover-story .views-field-title a {
   font-family: Georgia, serif;
-  font-size: 4em;
+  font-size: 2em;
   font-weight: bold;
   color: #231F20;
 }
@@ -1282,10 +1282,6 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 
 #content .node-issue .group-header .item-secondary-cover-article a {
   color: #F15A29;
-}
-
-#content .node-issue .group-header .item-secondary-cover-article .views-field-title {
-  float: left;
 }
 
 #content .node-issue .group-header .item-secondary-cover-article .views-field-field-authors a {
