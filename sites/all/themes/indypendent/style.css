@@ -880,11 +880,16 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 
 #pre-content .view-pre-article .views-field-field-feature-image {
   float: left;
+  width: 400px;
 }
 
-#pre-content .view-pre-article .views-field-field-feature-image .field-content {
-  display: block;
-  height: 250px;
+#pre-content .view-pre-article .views-field-field-feature-image .feature-caption {
+  font-family: verdana,tahoma,arial,sans-serif;
+  font-size: 1em;
+  line-height: 12px;
+  background-color: #DEB887;
+  opacity: .85;
+  padding: 7px;
 }
 
 #pre-content .view-pre-article .views-field-field-section, #pre-content .view-pre-article .views-field-php, #pre-content .view-pre-article .views-field-title, #pre-content .view-pre-article .views-field-field-excerpt {
@@ -944,14 +949,10 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 #pre-content .block-sharethis-block,
 #pre-content .view-pre-article .views-field-share-hr {
   position: absolute;
-  bottom: 0px;
+  top: 218px;
   right: 0px;
   width: 238px;
   margin: 0 10px;
-}
-
-#pre-content .block-sharethis-block {
-  padding-bottom: 16px;
 }
 
 #pre-content .view-pre-article .views-field-share-hr .field-content {
@@ -959,6 +960,7 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 }
 
 #pre-content .view-pre-article .views-field-share-hr {
+  margin-top: 21px;
   background-color: #CC0000; /* Default HR Color */
 }
 
