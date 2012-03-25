@@ -1,0 +1,266 @@
+<?php
+
+/**
+ * @file
+ * Installation file for DART module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function dart_uninstall() {
+  // Remove any blocks created by DART.
+  db_delete('block')
+    ->condition('module', 'dart')
+    ->execute();
+}
+
+/**
+ * Implements hook_schema().
+ */
+function dart_schema() {
+  $schema['dart_tags'] = array(
+    'description' => 'Stores information about DART tags.',
+    'export' => array(
+      'key' => 'machinename',
+      'identifier' => 'tag', // Exports will be available as $tag
+      'default hook' => 'default_dart_tag', // Function hook name.
+      'api' => array(
+        'owner' => 'dart',
+        'api' => 'dart_tag_default', // Base name for api include files.
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+    'fields' => array(
+      'machinename' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => "The tag's unique name.",
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => "The tag's human-readible name.",
+      ),
+      'pos' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => "The tag's position (pos) value.",
+      ),
+      'sz' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => "The tag's size (sz) value.",
+      ),
+      'active' => array(
+        'type' => 'int',
+        'default' => 1,
+        'description' => "If true the tag can be displayed.",
+      ),
+      'block' => array(
+        'type' => 'int',
+        'default' => 0,
+        'description' => 'If true, a block will be created in which to display this tag.',
+      ),
+      'settings' => array(
+        'type' => 'blob',
+        'description' => "Serialized array of settings.",
+      ),
+    ),
+    'primary key' => array('machinename'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_requirements().
+ */
+function dart_requirements() {
+  $t = get_t();
+
+  module_load_include('module', 'libraries');
+  if ($path = libraries_get_path('writecapture')) {
+    $exists = file_exists($path . '/jquery.writeCapture.js');
+  }
+
+  // In order to allow DART tags to be loaded ajaxically, we are using the
+  // writeCaptire jquery plugin.
+  if (!$exists) {
+    $requirements['dart'] = array(
+      'title' => $t('WriteCapture jquery plugin'),
+      'value' => $t('Missing'),
+      'description' => $t('This DART module requires !wc_link to be included using the !lib_link. Please download !wc_link and copy <code>plugin/writeCapture.js</code> file to <code>/sites/all/libraries/writecapture/jquery.writeCapture.js</code>', array('!wc_link' => l($t('WriteCapture jQuery plugin'), 'https://github.com/iamnoah/writeCapture'), '!lib_link' => l($t('Libraries module'), 'http://drupal.org/project/libraries'))),
+      'severity' => REQUIREMENT_ERROR,
+    );
+  }
+  else {
+    $requirements['dart'] = array(
+      'title' => $t('WriteCapture jquery plugin'),
+      'value' => $t('Exists'),
+      'severity' => REQUIREMENT_OK,
+    );
+  }
+
+  return $requirements;
+}
+
+/**
+ * Implements hook_update_N().
+ */
+function dart_update_6200() {
+  $ret = array();
+
+  // Make changes to the dart_tag table.
+  db_add_field('dart_tags', 'machinename', array('type' => 'varchar', 'length' => 128, 'not null' => TRUE, 'default' => '', 'description' => "The tag's unique name."));
+  db_change_field('dart_tags', 'name', 'name', array('type' => 'varchar', 'length' => 128, 'not null' => TRUE, 'default' => '', 'description' => "The tag's human-readible name."));
+
+  // Make changes to the existing tags.
+  $tags = db_query("SELECT * FROM {dart_tags}");
+  while ($tag = db_fetch_object($tags)) {
+    // Create a machinename.
+    $machinename = _dart_machinename($tag->name);
+    db_update('dart_tags')
+      ->fields(array(
+        'machinename' => $machinename,
+      ))
+      ->condition('dtid', $tag->dtid)
+      ->execute();
+    drupal_set_message(t('The DART tag with id @dtid now uses @machinename as its identifier.', array('@dtid' => $tag->dtid, '@machinename' => $machinename)));
+
+    // Alter the tag's settings.
+    $tag->settings = unserialize($tag->settings);
+
+    $tag->settings['overrides'] = array(
+      'site' => $tag->settings['site'],
+      'zone' => $tag->settings['zone'],
+      'slug' => $tag->settings['slug'],
+    );
+    if (isset($tag->settings['options']['keyvals'])) {
+      $tag->settings['key_vals'] = _dart_convert_old_key_vals($tag->settings['options']['keyvals']);
+    }
+    $tag->settings['scheduler'] = array();
+    unset($tag->settings['site'], $tag->settings['zone'], $tag->settings['slug'], $tag->settings['options']['keyvals'], $tag->settings['options']['rules']);
+    db_update('dart_tags')
+      ->fields(array(
+        'settings' => serialize($tag->settings),
+      ))
+      ->condition('dtid', $tag->dtid)
+      ->execute();
+
+    // Update any blocks that were created for this tag.
+    db_update('block')
+      ->fields(array(
+        'delta' => 'dart-tag-' . $machinename,
+      ))
+      ->condition('module', 'dart')
+      ->condition('delta', 'dart-tag-' . $tag->dtid)
+      ->execute();
+    db_update('block_role')
+      ->fields(array(
+        'delta' => 'dart-tag-' . $machinename,
+      ))
+      ->condition('delta', 'dart-tag-' . $tag->dtid)
+      ->execute();
+    drupal_set_message(t('All DART tag blocks with a "delta" of @old has had its "delta" changed to @new', array('old' => 'dart-tag-' . $tag->dtid, 'new' => 'dart-tag-' . $machinename)));
+  }
+
+  // Rename variables.
+  $sitezone = explode('/', variable_get('dart_sitezone', ''));
+
+  variable_set('dart_global_site', isset($sitezone[0]) ? $sitezone[0] : '');
+  variable_set('dart_global_zone', isset($sitezone[1]) ? $sitezone[1] : '');
+  variable_set('dart_kvs', _dart_convert_old_key_vals(addcslashes(variable_get('dart_kvs', ''), "\n\r")));
+
+  drupal_set_message(t('The @old variable has been renamed @new', array('@old' => 'dart_sitezone', '@new' => 'dart_site & dart_zone')));
+
+  $variables = array(
+    'dart_prefix' => 'dart_global_prefix',
+    'dart_kvs' => 'dart_key_vals',
+    'dart_slug' => 'dart_global_slug',
+    'dart_special_kvs' => 'dart_special_key_vals',
+  );
+  _dart_rename_variables($variables);
+
+  // Delete some variables.
+  variable_del('dart_sitezone');
+  variable_del('dart_display_rule_roles');
+  variable_del('dart_display_rule_admin');
+
+  // Now that each tag has a machinename change the primary key.
+  db_drop_field('dart_tags', 'dtid');
+  db_add_primary_key('dart_tags', array('machinename'));
+
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $ret */;
+}
+
+/**
+ * Helper function to rename variables in the variables table.
+ *
+ * @param $variables
+ *   An array where the key is the old name and the value is the new name.
+ *
+ */
+function _dart_rename_variables($variables) {
+  foreach ($variables as $old => $new) {
+    $temp = variable_get($old, '');
+    variable_set($new, $temp);
+    variable_del($old);
+    drupal_set_message(t('The @old variable has been renamed @new', array('@old' => $old, '@new' => $new)));
+  }
+}
+
+/**
+ * Helper function that converts a name to a machinename. If necessary, a number
+ * is appended to the end of the machinename.
+ *
+ * @param $name
+ *   A string to be converted.
+ *
+ */
+function _dart_machinename($name) {
+  $machinename = '';
+  $i = 0;
+
+  while (empty($machinename)) {
+    $candidate = strtolower(ereg_replace("[^A-Za-z0-9]", "", $name));
+    $candidate = $i ? $candidate . $i : $candidate;
+    $taken = db_query("SELECT machinename FROM {dart_tags} WHERE machinename = :machinename", array(':machinename' => $candidate))->fetchField();
+    if (!$taken) {
+      $machinename = $candidate;
+    }
+    else {
+      $i++;
+    }
+  }
+
+  return $machinename;
+}
+
+function _dart_convert_old_key_vals($old_key_vals) {
+  $new_key_vals = array();
+
+  $old_key_vals = explode('\r\n', $old_key_vals);
+
+  foreach ($old_key_vals as $old_key_val) {
+    if (!empty($old_key_val)) {
+      $key_val = explode('|', $old_key_val);
+      $key_val = array_combine(array_slice(array('key', 'val', 'eval'), 0, count($key_val)), $key_val);
+      $new_key_vals[] = $key_val;
+    }
+  }
+
+  return $new_key_vals;
+}
