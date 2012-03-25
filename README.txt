@@ -1,5 +1,3 @@
-* Indypendent Website
-
 
 CONTENTS OF THIS FILE
 ---------------------
