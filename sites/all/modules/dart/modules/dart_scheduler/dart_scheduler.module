@@ -1,0 +1,156 @@
+<?php
+
+/**
+ * The maximum number of key|value pair fields to show on forms by defaut.
+ */
+define('DART_MAX_EVENTS', 10);
+
+
+/**
+ * Implements hook_theme().
+ */
+function dart_scheduler_theme() {
+  return array(
+    'dart_scheduler_add_form' => array(
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_cron().
+ */
+function dart_scheduler_cron() {
+  $tags = dart_tag_load();
+
+  foreach ($tags as $tag) {
+    for ($i = 0; $event = $tag->settings['scheduler'][$i]; $i++) {
+      if (strtotime($event['date'] <= REQUEST_TIME)) {
+        dart_tag_set_status($tag, $event['status']);
+        unset($tag->settings['scheduler'][$i]);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_alter();().
+ */
+function dart_scheduler_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == "ctools_export_ui_edit_item_form" && $form_state['plugin']['schema'] == 'dart_tags') {
+    $tag = $form_state['item'];
+    $event_count = max(DART_MAX_EVENTS, count($tag->settings['scheduler']) + 5);
+
+    $form['#validate'][] = 'dart_scheduler_form_validate';
+
+    $form['settings']['scheduler'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Schedule'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+    $form['settings']['scheduler']['add'] = array(
+      '#theme' => 'dart_scheduler_add_form',
+    );
+    for ($i = 0; $i < $event_count; $i++) {
+      $defaults = isset($tag->settings['scheduler'][$i]) ? $tag->settings['scheduler'][$i] : array();
+      $form['settings']['scheduler']['add'][$i] = _dart_scheduler_add_form($i, $defaults);
+    }
+  }
+}
+
+/**
+ * Form validation function for the DART scheduler form.
+ */
+function dart_scheduler_form_validate($form, &$form_state) {
+  for ($i = 0; $event = $form_state['values']['scheduler'][$i]; $i++) {
+    if (empty($event['date'])) {
+      unset($form_state['values']['scheduler'][$i]);
+    }
+    else {
+      if (!preg_match("/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/", $event['date'], $parts) || !checkdate($parts[2], $parts[3], $parts[1])) {
+        form_set_error('scheduler][' . $i . '][date', t('The date was not entered in the proper format (YYYY-MM-DD)'));
+      }
+    }
+  }
+
+  // Reset the indexes in case any were deleted.
+  $form_state['values']['scheduler'] = array_values($form_state['values']['scheduler']);
+}
+
+/**
+ * Implementation of drupal_alter();
+ */
+function dart_scheduler_dart_tag_settings_data_structure_alter(&$structure) {
+  $structure['scheduler'] = array();
+}
+
+/**
+ * Form builder; Creates a scheduler form.
+ */
+function _dart_scheduler_add_form($delta, $defaults = array()) {
+  $form = array(
+    '#tree' => TRUE,
+  );
+
+  $form['status'] = array(
+    '#type' => 'select',
+    '#title' => t('Status'),
+    '#options' => array(
+      1 => t('Active'),
+      0 => t('Inactive'),
+    ),
+    '#parents' => array('scheduler', $delta, 'status'),
+    '#default_value' => isset($defaults['status']) ? $defaults['status'] : 1,
+  );
+  $form['date'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Date'),
+    '#maxlength' => 128,
+    '#default_value' => isset($defaults['date']) ? $defaults['date'] : '',
+    '#parents' => array('scheduler', $delta, 'date'),
+  );
+
+  return $form;
+}
+
+/**
+ * Theme function for the DART scheduler add event form.
+ */
+function theme_dart_scheduler_add_form($variables) {
+  $form = &$variables['form'];
+  $rows = array();
+  $headers = array(
+    t('Status to be applied'),
+    t('Date to make this change (YYYY-MM-DD)'),
+  );
+
+  foreach (element_children($form) as $key) {
+    // No need to print the field title every time.
+    unset($form[$key]['status']['#title'], $form[$key]['date']['#title']);
+
+    // Build the table row.
+    $row = array(
+      'data' => array(
+        array(
+          'data' => drupal_render($form[$key]['status']),
+          'class' => array('scheduler-status'),
+        ),
+        array(
+          'data' => drupal_render($form[$key]['date']),
+          'class' => array('scheduler-date'),
+        ),
+      ),
+    );
+
+    // Add additional attributes to the row, such as a class for this row.
+    if (isset($form[$key]['#attributes'])) {
+      $row = array_merge($row, $form[$key]['#attributes']);
+    }
+    $rows[] = $row;
+  }
+
+  $output = theme('table', array('header' => $headers, 'rows' => $rows, 'attributes' => array(), 'caption' => t('Below is a list of all the scheduled changes for this tag.')));
+  $output .= drupal_render_children($form);
+  return $output;
+}

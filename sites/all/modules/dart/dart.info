@@ -1,0 +1,22 @@
+name = DART
+description = Integrates DART ads onto a site.
+core = 7.x
+package = Advertising
+dependencies[] = ctools
+dependencies[] = libraries
+version = "7.x-2.x"
+project = "dart"
+
+files[] = dart.admin.inc
+files[] = dart.install
+files[] = dart.module
+files[] = contexts/dart_context_reaction_tags.inc
+files[] = export_ui/dart_ctools_export_ui.inc
+files[] = export_ui/dart_tag_ui.class.php
+files[] = theme/dart_tag.tpl.php
+; Information added by drupal.org packaging script on 2011-11-27
+version = "7.x-2.4"
+core = "7.x"
+project = "dart"
+datestamp = "1322430938"
+

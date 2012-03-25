@@ -1,0 +1,22 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the dart_scheduler module.
+ *
+ */
+
+
+/**
+ * Implements hook_update_N().
+ */
+function dart_scheduler_update_6200() {
+  $ret = array();
+
+  // Delete the dart_scheduler table.
+  db_drop_table('dart_tags_schedule');
+
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $ret */;
+}
