@@ -1,4 +1,4 @@
-/*
+	/*
 #content .view-content span.views-field-title {
   font-family: verdana,tahoma,arial,sans-serif;
   font-weight: bold;
@@ -881,6 +881,7 @@ p, ul, h1, h2, h3, h4, h5, h6 {
 #pre-content .view-pre-article .views-field-field-feature-image {
   float: left;
   width: 400px;
+  height: 250px;
 }
 
 #pre-content .view-pre-article .views-field-field-feature-image .feature-caption {
