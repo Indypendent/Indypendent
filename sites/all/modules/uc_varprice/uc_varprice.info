@@ -17,3 +17,10 @@ datestamp = "1242709317"
 
 files[] = uc_varprice.install
 files[] = uc_varprice.module
+
+; Information added by drupal.org packaging script on 2012-02-05
+version = "7.x-1.0"
+core = "7.x"
+project = "uc_varprice"
+datestamp = "1328482252"
+

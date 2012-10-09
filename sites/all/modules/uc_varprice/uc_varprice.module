@@ -70,7 +70,7 @@ function uc_varprice_form_alter(&$form, &$form_state, $form_id) {
       $data = unserialize($form['items'][$i]['data']['#value']);
 
       // If this item has a quantity restriction on it...
-      if ($data['varprice'] > 0) {
+      if (isset($data['varprice']) && $data['varprice'] > 0) {
         $form['items'][$i]['qty']['#type'] = 'value';
         $form['items'][$i]['qty']['#theme'] = 'varprice_qty';
       }
@@ -214,17 +214,13 @@ function uc_varprice_uc_add_to_cart($nid, $qty, $data) {
 }
 
 /**
- * Implements hook_uc_cart_item().
+ * Implements hook_uc_product_alter().
  */
-function uc_varprice_uc_cart_item($op, $item) {
-  // When the cart product is being loaded...
-  if ($op == 'load') {
-    // If the product has a variable price set...
-    if (!empty($item->data['varprice'])) {
-      // Update the cart item's price to the entered price value.
-      $item->price = $item->data['varprice'];
-      $item->display_price = $item->data['varprice'];
-    }
+function uc_varprice_uc_product_alter($item) {
+  // If the product has a variable price set...
+  if (!empty($item->data['varprice'])) {
+    // Update the cart item's price to the entered price value.
+    $item->display_price = $item->price = $item->data['varprice'];
   }
 }
 
