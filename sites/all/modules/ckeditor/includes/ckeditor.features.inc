@@ -1,7 +1,7 @@
 <?php
 /**
  * CKEditor - The text editor for the Internet - http://ckeditor.com
- * Copyright (c) 2003-2011, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
  *
  * == BEGIN LICENSE ==
  *
@@ -80,6 +80,13 @@ function ckeditor_profile_features_export_render($module_name, $data) {
   $code .= '  return $data;';
 
   return array('ckeditor_profile_defaults' => $code);
+}
+
+/**
+ * Implementation of hook_features_rebuild()
+ */
+function ckeditor_profile_features_rebuild($module) {
+    ckeditor_profile_features_revert($module);
 }
 
 /**

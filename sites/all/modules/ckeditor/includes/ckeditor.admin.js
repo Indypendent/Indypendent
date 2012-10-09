@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2011, CKSource - Frederico Knabben. All rights reserved.
+Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
 For licensing, see LICENSE.html or http://ckeditor.com/license
 */
 (function ($) {
@@ -15,7 +15,7 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
             configBox.style = 'display:none';
         }
     });
-    
+
     $(document).ready(function() {
         if (typeof(CKEDITOR) == "undefined")
             return;
@@ -122,7 +122,50 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
                 }
             }
         });
-        
+
+        $("#input-formats :checkbox").change(function() {
+            $('#security-filters .filter-warning').hide();
+            $('#security-filters div.filter-text-formats[filter]').html('');
+            $('#security-filters ul.text-formats-config').html('');
+            $('#input-formats :checked').each(function() {
+                var format_name = $(this).val();
+                var format_label = $('label[for="' + $(this).attr('id') + '"]').html();
+
+                if (typeof(Drupal.settings.text_formats_config_links[format_name]) != 'undefined') {
+                    var text = "<li>" + format_label + " - <a href=\"" + Drupal.settings.text_formats_config_links[format_name].config_url + "\">configure</a></li>";
+                    var dataSel = $('#security-filters ul.text-formats-config');
+                    var html = dataSel.html();
+                    if (html == null || html.length == 0) {
+                        dataSel.html(text);
+                    }
+                    else {
+                        html += text;
+                        dataSel.html(html);
+                    }
+                }
+
+                $('#security-filters div.filter-text-formats[filter]').each(function() {
+                    var filter_name = $(this).attr('filter');
+                    var dataSel = $(this);
+                    var html = dataSel.html();
+                    var status = "enabled";
+                    if (typeof Drupal.settings.text_format_filters[format_name][filter_name] == 'undefined') {
+                        status = "disabled";
+                    }
+                    var text = "<span class=\"filter-text-format-status " + status + "\">" + format_label + ': </span><br/>';
+
+                    if (html == null || html.length == 0) {
+                        dataSel.html(text);
+                    }
+                    else {
+                        html += text;
+                        dataSel.html(html);
+                    }
+                });
+            });
+        });
+        $("#input-formats :checkbox:eq(0)").trigger('change');
+
         $(".cke_load_toolbar").click(function() {
             var buttons = eval('Drupal.settings.'+$(this).attr("id"));
             var text = "[\n";
@@ -152,8 +195,14 @@ For licensing, see LICENSE.html or http://ckeditor.com/license
             text = text + "]";
             text = text.replace(/\['\/'\]/g,"'/'");
             $("#edit-toolbar").attr('value',text);
-            Drupal.ckeditorToolbarReload();
+            if (Drupal.settings.ckeditor_toolbar_wizard == 't'){
+                Drupal.ckeditorToolbarReload();
+            }
             return false;
         });
+
+        if (Drupal.settings.ckeditor_toolbar_wizard == 'f'){
+            $("form#ckeditor-admin-profile-form textarea#edit-toolbar, form#ckeditor-admin-profile-form #edit-toolbar + .grippie").show();
+        }
     });
 })(jQuery);

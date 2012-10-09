@@ -48,10 +48,10 @@ table.cke_editor fieldset {
 }
 
 /*toolbar Drag & Drop*/
-#edit-toolbar {
+form#ckeditor-admin-profile-form textarea#edit-toolbar {
     display: none;
 }
-#edit-toolbar + .grippie {
+form#ckeditor-admin-profile-form #edit-toolbar + .grippie {
     display: none;
 }
 div.sortableList {
@@ -109,8 +109,52 @@ li.sortableItem {
     margin: 3px 1px 1px 0px;
     border: 1px solid #CCC;
     background-color: #F0F0EE;
-    disc-type: none;
     z-index: 99;
+}
+
+#security-filters .filter-text-formats {
+    float: left;
+    clear: both;
+    width: 15%;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 10px 0px;
+}
+
+#security-filters .filter-text-formats .filter-text-format-status {
+    float: left;
+    padding-right: 20px;
+}
+
+#security-filters .filter-text-formats .enabled {
+    background: url(images/tick.png) no-repeat right center;
+}
+
+#security-filters .filter-text-formats .disabled {
+    background: url(images/delete.png) no-repeat right center;
+}
+
+#security-filters .filter-info {
+    float: left;
+    width: 85%;
+}
+
+#security-filters .fieldset-legend {
+    background: none;
+    padding-left: 10px;
+}
+
+#security-filters .fieldset-legend a {
+    font-weight: normal;
+    font-size: 10px;
+    padding-left: 5px;
+}
+
+#security-filters .filter-wrapper {
+    clear: both;
+    float: left;
+    border-bottom: 1px solid #CCCCCC;
+    width: 100%;
 }
 
 /* Fix for fieldset for-edit-apperance in Firefox*/

@@ -1,7 +1,7 @@
 <?php
 /**
  * CKEditor - The text editor for the Internet - http://ckeditor.com
- * Copyright (c) 2003-2011, CKSource - Frederico Knabben. All rights reserved.
+ * Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
  *
  * == BEGIN LICENSE ==
  *
@@ -48,12 +48,12 @@ function ckeditor_drush_download() {
     else {
         $path = drush_get_context('DRUSH_DRUPAL_ROOT') . '/sites/all/libraries/ckeditor';
     }
-
-    if (drush_shell_exec('svn checkout http://svn.ckeditor.com/CKEditor/releases/stable/ ' . $path)) {
-        drush_log(dt('CKEditor was downloaded to @path.', array('@path' => $path)), 'success');
+    $svn_cmd = 'svn checkout http://svn.ckeditor.com/CKEditor/releases/stable/ ' . $path;
+    if (drush_shell_exec($svn_cmd)) {
+        drush_log(dt('CKEditor was downloaded to !path.', array('!path' => '<code>' . $path . '</code>')), 'success');
     }
     else {
-        drush_log(dt('Drush was unable to download CKEditor to @path.', array('@path' => $path)), 'error');
+        drush_log(dt('Drush was unable to download CKEditor to !path.', array('!path' => '<code>' . $path . '</code>')) . '<br/>' . dt('Attempted command: !svn_cmd.', array('!svn_cmd' => '<code>' . $svn_cmd . '</code>')), 'error');
     }
 }
 
