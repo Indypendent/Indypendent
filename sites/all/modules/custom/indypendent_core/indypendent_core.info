@@ -1,0 +1,4 @@
+name = Indypendent core
+description = Core module for The Indypendent site
+package = Indypendent
+core = 7.x

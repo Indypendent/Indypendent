@@ -1,0 +1,25 @@
+<?php
+
+/*
+ * @file
+ * Core module for The Indypendent site.
+ */
+
+/**
+ * Implements hook_preprocess_simplenews_newsletter_body.
+ *
+ * Don't show Simplenews Category if the subscription opt_inout setting is set
+ * to hidden.
+ */
+function indypendent_core_preprocess_simplenews_newsletter_body(&$variables) {
+  $node = $variables['build']['#node'];
+  $category = $variables['category'];
+  
+  foreach (field_info_instances('node', $node->type) as $field_name => $field) {
+    if (isset($variables['build'][$field_name])) {
+      if ('field_simplenews_term' == $field_name && SIMPLENEWS_OPT_INOUT_HIDDEN == $category->opt_inout) {
+        unset($variables['build']['field_simplenews_term']);
+      }
+    }
+  }
+}
