@@ -1,0 +1,4 @@
+name = The Day We Fight Back
+description = Adds thedaywefightback.js banner to your site
+core = 7.x
+configure = admin/config/content/tdwfb

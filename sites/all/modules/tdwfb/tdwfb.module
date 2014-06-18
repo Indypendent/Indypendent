@@ -1,0 +1,98 @@
+<?php
+
+function tdwfb_page_alter(&$page) {
+	if (path_is_admin(current_path())) return;
+
+	$config = array();
+
+	$greeting         = variable_get('tdwfb_greeting', '');
+	$disableDate      = variable_get('tdwfb_disable_date', 0);
+	$callOnly         = variable_get('tdwfb_call_only', 0);
+	$overrideLocation = variable_get('tdwfb_override_location', 'none');
+
+	if ($greeting) $config['greeting'] = $greeting;
+	if ($disableDate == 1) $config['disableDate'] = true;
+	if ($callOnly == 1) $config['callOnly'] = true;
+	if ($overrideLocation != 'none') $config['overrideLocation'] = $overrideLocation;
+
+	$json_config = json_encode($config, JSON_FORCE_OBJECT);
+	$js =<<<EOS
+<!--[if !(lt IE 8)]><!-->
+<script type="text/javascript">
+  var tdwfb_config = $json_config;
+  (function(){
+    var e = document.createElement('script'); e.type='text/javascript'; e.async = true;
+    e.src = document.location.protocol + '//d1agz031tafz8n.cloudfront.net/thedaywefightback.js/widget.min.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s);
+  })();
+</script>
+<!--<![endif]-->
+EOS;
+
+	$page['page_bottom']['tdwfb'] = array(
+		'#markup' => $js
+	);
+}
+
+ 
+function tdwfb_menu() {
+  $items = array();
+
+  $items['admin/config/content/tdwfb'] = array(
+    'title' => 'The Day We Fight Back config',
+    'description' => 'Configuration for thedaywefightback.js',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('tdwfb_form'),
+    'access arguments' => array('access administration pages'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+function tdwfb_form($form, &$form_state) {
+  $form['tdwfb_greeting'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Greeting'),
+    '#default_value' => variable_get('tdwfb_greeting'),
+    '#size' => 100,
+    '#description' => t('Sets the salutation shown in the banner.'),
+    '#required' => FALSE,
+  );
+
+  $form['tdwfb_disable_date'] = array(
+    '#type' => 'radios',
+    '#title' => t('Disable Date'),
+    '#default_value' => variable_get('tdwfb_disable_date', 0),
+    '#description' => t('If yes, the banner shows even if the date is not yet 02/11/2014. Use for testing.'),
+    '#options' => array(t('No'), t('Yes'))
+  );
+
+  $form['tdwfb_call_only'] = array(
+    '#type' => 'radios',
+    '#title' => t('Call Only'),
+    '#default_value' => variable_get('tdwfb_call_only', 0),
+    '#description' => t('If yes, the banner emphasizes calling congress over emailing.'),
+    '#options' => array(t('No'), t('Yes'))
+  );
+
+  $form['tdwfb_override_location'] = array(
+    '#type' => 'radios',
+    '#title' => t('Override Location'),
+    '#default_value' => variable_get('tdwfb_override_location', 'none'),
+    '#description' => t('Use to manually set the location, rather the IP lookup.'),
+    '#options' => array('none' => t('None'),'usa' => t('USA'), 'international' => t('International'))
+  );
+
+  $form['tdwfb_start_minimized'] = array(
+    '#type' => 'radios',
+    '#title' => t('Start as Minimized'),
+    '#default_value' => variable_get('tdwfb_start_minimized', 0),
+    '#description' => t('If yes, the banner starts minimized.'),
+    '#options' => array(t('No'), t('Yes'))
+  );
+
+  return system_settings_form($form);
+}
+
+?>
