@@ -42,7 +42,7 @@ function mimemail_admin_settings() {
     '#type'          => 'checkbox',
     '#title'         => t('Use simple address format'),
     '#default_value' => variable_get('mimemail_simple_address', FALSE),
-    '#description' => t('Use the simple format of user@example.com for all email addresses.'),
+    '#description' => t('Use the simple format of user@example.com for all recipient email addresses.'),
   );
   $form['mimemail']['mimemail_sitestyle'] = array(
     '#type'          => 'checkbox',
@@ -101,7 +101,7 @@ function mimemail_admin_settings() {
   $form['mimemail']['advanced']['mimemail_key'] = array(
     '#type' => 'textfield',
     '#title' => t('Message validation string'),
-    '#default_value' => variable_get('mimemail_key', md5(rand())),
+    '#default_value' => variable_get('mimemail_key', drupal_random_key()),
     '#required' => TRUE,
     '#description' => t('This string will be used to validate incoming messages. It can be anything, but must be used on both sides of the transfer.'),
   );
@@ -113,6 +113,7 @@ function mimemail_admin_settings() {
   }
   // Hide the settings if only 1 engine is available.
   if (count($engines) == 1) {
+    reset($engines);
     variable_set('mimemail_engine', key($engines));
     $form['mimemail']['mimemail_engine'] = array(
       '#type' => 'hidden',
